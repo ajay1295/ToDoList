@@ -8,7 +8,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content">
         <TextView
-            android:id="@+id/txtToName"
+            android:id="@+id/txtTaskName"
             android:layout_width="match_parent"
             android:layout_height="wrap_content" />
     </RelativeLayout>
