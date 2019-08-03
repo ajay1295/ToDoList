@@ -40,7 +40,7 @@ import java.util.TimeZone;
 
 public class MainActivity extends AppCompatActivity {
 
-    private ArrayList<String> taskModelArrayList = new ArrayList<>();
+    private ArrayList<TodoModel> taskModelArrayList = new ArrayList<>();
 
     public static String PRIMARY_CHANNEL_ID;
     public static NotificationManager mNotifyManager;
@@ -76,7 +76,9 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onChildAdded(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {
                 String task = (String) dataSnapshot.child("task").getValue();
-                taskModelArrayList.add(task);
+                String key = dataSnapshot.getKey();
+                TodoModel todoModel = new TodoModel(key,task);
+                taskModelArrayList.add(todoModel);
                 todoAdapter.notifyDataSetChanged();
             }
 
@@ -113,7 +115,7 @@ public class MainActivity extends AppCompatActivity {
 
         @Override
         public void onBindViewHolder(@NonNull TodoAdapterViewHolder todoAdapterViewHolder, int i) {
-            String taskName = taskModelArrayList.get(i);
+            String taskName = taskModelArrayList.get(i).getTask();
 
             todoAdapterViewHolder.txtTaskName.setText(taskName);
         }
@@ -127,11 +129,14 @@ public class MainActivity extends AppCompatActivity {
     private class TodoAdapterViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
         private final TextView txtTaskName;
         private final ImageButton btnRemind;
+        private final ImageButton btnComment;
         public TodoAdapterViewHolder(@NonNull View itemView) {
             super(itemView);
             txtTaskName = itemView.findViewById(R.id.txtTaskName);
             btnRemind = itemView.findViewById(R.id.btnRemind);
+            btnComment = itemView.findViewById(R.id.btnComment);
             btnRemind.setOnClickListener(this);
+            btnComment.setOnClickListener(this);
         }
 
         @Override
@@ -148,13 +153,15 @@ public class MainActivity extends AppCompatActivity {
 
                 Intent intent = new Intent(MainActivity.this, Notify.class);
                 intent.putExtra("title","Daily Reminder");
-                intent.putExtra("message",taskModelArrayList.get(position));
+                intent.putExtra("message",taskModelArrayList.get(position).getTask());
                 PendingIntent pendingIntent = PendingIntent.getBroadcast(MainActivity.this,
                         requestCode, intent, PendingIntent.FLAG_CANCEL_CURRENT);
                 AlarmManager alarms = (AlarmManager) getSystemService(
                         Context.ALARM_SERVICE);
                 alarms.setInexactRepeating(AlarmManager.RTC_WAKEUP, calendar.getTimeInMillis(), AlarmManager.INTERVAL_DAY, pendingIntent);
                 Toast.makeText(MainActivity.this, "Daily Reminder Set", Toast.LENGTH_SHORT).show();
+            }else if (view.getId() == R.id.btnComment){
+                startActivity(new Intent(MainActivity.this,Comments.class).putExtra("key",taskModelArrayList.get(position).getKey()));
             }
         }
     }
@@ -168,6 +175,24 @@ public class MainActivity extends AppCompatActivity {
             mChannel.setLightColor(Color.CYAN);
             mChannel.setDescription("Notification From To Do List");
             mNotifyManager.createNotificationChannel(mChannel);
+        }
+    }
+
+    private class TodoModel{
+        String key;
+        String task;
+
+        public TodoModel(String key, String task) {
+            this.key = key;
+            this.task = task;
+        }
+
+        public String getKey() {
+            return key;
+        }
+
+        public String getTask() {
+            return task;
         }
     }
 }
