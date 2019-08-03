@@ -1,6 +1,13 @@
 package com.example.todolist;
 
+import android.app.AlarmManager;
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
+import android.app.PendingIntent;
+import android.content.Context;
 import android.content.Intent;
+import android.graphics.Color;
+import android.os.Build;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.design.widget.FloatingActionButton;
@@ -12,7 +19,9 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageButton;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.google.firebase.database.ChildEventListener;
 import com.google.firebase.database.DataSnapshot;
@@ -23,11 +32,18 @@ import com.google.firebase.database.FirebaseDatabase;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.TimeZone;
 
 public class MainActivity extends AppCompatActivity {
 
     private ArrayList<String> taskModelArrayList = new ArrayList<>();
+
+    public static String PRIMARY_CHANNEL_ID;
+    public static NotificationManager mNotifyManager;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -36,6 +52,10 @@ public class MainActivity extends AppCompatActivity {
 
         final FirebaseDatabase database = FirebaseDatabase.getInstance();
         final DatabaseReference myRef = database.getReference("todo");
+
+        PRIMARY_CHANNEL_ID = getString(R.string.default_notification_channel_id);
+
+        NotificationChannel();
 
         FloatingActionButton btnCreate = findViewById(R.id.btnCreate);
         RecyclerView recyclerView = findViewById(R.id.recyclerView);
@@ -104,11 +124,50 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    private class TodoAdapterViewHolder extends RecyclerView.ViewHolder {
+    private class TodoAdapterViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
         private final TextView txtTaskName;
+        private final ImageButton btnRemind;
         public TodoAdapterViewHolder(@NonNull View itemView) {
             super(itemView);
             txtTaskName = itemView.findViewById(R.id.txtTaskName);
+            btnRemind = itemView.findViewById(R.id.btnRemind);
+            btnRemind.setOnClickListener(this);
+        }
+
+        @Override
+        public void onClick(View view) {
+            int position = getAdapterPosition();
+            if (view.getId()==R.id.btnRemind){
+
+                Calendar calendar = Calendar.getInstance();
+                calendar.set(Calendar.MINUTE, 0);
+                calendar.set(Calendar.HOUR_OF_DAY, 9);
+
+                Date myDate = new Date();
+                int requestCode = Integer.parseInt(new SimpleDateFormat("ddhhmmss").format(myDate));
+
+                Intent intent = new Intent(MainActivity.this, Notify.class);
+                intent.putExtra("title","Daily Reminder");
+                intent.putExtra("message",taskModelArrayList.get(position));
+                PendingIntent pendingIntent = PendingIntent.getBroadcast(MainActivity.this,
+                        requestCode, intent, PendingIntent.FLAG_CANCEL_CURRENT);
+                AlarmManager alarms = (AlarmManager) getSystemService(
+                        Context.ALARM_SERVICE);
+                alarms.setInexactRepeating(AlarmManager.RTC_WAKEUP, calendar.getTimeInMillis(), AlarmManager.INTERVAL_DAY, pendingIntent);
+                Toast.makeText(MainActivity.this, "Daily Reminder Set", Toast.LENGTH_SHORT).show();
+            }
+        }
+    }
+
+
+    private void NotificationChannel(){
+        mNotifyManager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
+        if (Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O){
+            NotificationChannel mChannel = new NotificationChannel(PRIMARY_CHANNEL_ID,"Digimkey", NotificationManager.IMPORTANCE_HIGH);
+            mChannel.enableLights(true);
+            mChannel.setLightColor(Color.CYAN);
+            mChannel.setDescription("Notification From To Do List");
+            mNotifyManager.createNotificationChannel(mChannel);
         }
     }
 }
