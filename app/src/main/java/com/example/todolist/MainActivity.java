@@ -15,14 +15,12 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.CheckBox;
 import android.widget.CompoundButton;
 import android.widget.ImageButton;
-import android.widget.RadioGroup;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -32,14 +30,10 @@ import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 
-import org.json.JSONException;
-import org.json.JSONObject;
-
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
-import java.util.TimeZone;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -73,7 +67,7 @@ public class MainActivity extends AppCompatActivity {
         btnCreate.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                startActivity(new Intent(MainActivity.this,CreateToDo.class));
+                startActivity(new Intent(MainActivity.this, CreateTask.class));
             }
         });
 
@@ -183,7 +177,10 @@ public class MainActivity extends AppCompatActivity {
                 alarms.setInexactRepeating(AlarmManager.RTC_WAKEUP, calendar.getTimeInMillis(), AlarmManager.INTERVAL_DAY, pendingIntent);
                 Toast.makeText(MainActivity.this, "Daily Reminder Set", Toast.LENGTH_SHORT).show();
             }else if (view.getId() == R.id.btnComment){
-                startActivity(new Intent(MainActivity.this,Comments.class).putExtra("key",taskModelArrayList.get(position).getKey()));
+                Intent intent = new Intent(MainActivity.this,Comments.class);
+                intent.putExtra("key",taskModelArrayList.get(position).getKey());
+                intent.putExtra("task",taskModelArrayList.get(position).getTask());
+                startActivity(intent);
             }
         }
 

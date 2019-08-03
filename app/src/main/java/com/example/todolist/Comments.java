@@ -33,6 +33,13 @@ public class Comments extends AppCompatActivity {
 
         Intent intent = getIntent();
         final String key = intent.getStringExtra("key");
+        String task = intent.getStringExtra("task");
+
+        if (getSupportActionBar() != null) {
+            getSupportActionBar().setHomeButtonEnabled(true);
+            getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+            setTitle(task);
+        }
 
         final FirebaseDatabase database = FirebaseDatabase.getInstance();
         final DatabaseReference myRef = database.getReference("todo").child(key).child("Comments");

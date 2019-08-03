@@ -17,6 +17,9 @@
         android:gravity="start|top"
         android:inputType="textMultiLine"
         android:lines="2"
+        android:hint="Comment Here..."
+        android:padding="8dp"
+        android:background="@drawable/bg_edittext"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toStartOf="@+id/btnSend"
         app:layout_constraintStart_toStartOf="parent"
@@ -31,7 +34,7 @@
         android:clickable="true"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:srcCompat="@android:drawable/ic_menu_send" />
+        app:srcCompat="@drawable/ic_send" />
 
     <android.support.v7.widget.RecyclerView
         android:id="@+id/recyclerView"
