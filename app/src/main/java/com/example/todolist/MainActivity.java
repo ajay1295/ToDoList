@@ -19,7 +19,10 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.CheckBox;
+import android.widget.CompoundButton;
 import android.widget.ImageButton;
+import android.widget.RadioGroup;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -45,13 +48,15 @@ public class MainActivity extends AppCompatActivity {
     public static String PRIMARY_CHANNEL_ID;
     public static NotificationManager mNotifyManager;
 
+    private DatabaseReference myRef;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
         final FirebaseDatabase database = FirebaseDatabase.getInstance();
-        final DatabaseReference myRef = database.getReference("todo");
+        myRef = database.getReference("todo");
 
         PRIMARY_CHANNEL_ID = getString(R.string.default_notification_channel_id);
 
@@ -76,15 +81,23 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onChildAdded(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {
                 String task = (String) dataSnapshot.child("task").getValue();
+                boolean isCompleted = (boolean) dataSnapshot.child("isCompleted").getValue();
                 String key = dataSnapshot.getKey();
-                TodoModel todoModel = new TodoModel(key,task);
+                TodoModel todoModel = new TodoModel(key,task,isCompleted);
                 taskModelArrayList.add(todoModel);
                 todoAdapter.notifyDataSetChanged();
             }
 
             @Override
             public void onChildChanged(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {
-
+                boolean isCompleted = (boolean) dataSnapshot.child("isCompleted").getValue();
+                String key = dataSnapshot.getKey();
+                for (TodoModel todoModel : taskModelArrayList){
+                    if (todoModel.getKey().equals(key)){
+                        todoModel.setCompelted(isCompleted);
+                    }
+                }
+                todoAdapter.notifyDataSetChanged();
             }
 
             @Override
@@ -116,8 +129,14 @@ public class MainActivity extends AppCompatActivity {
         @Override
         public void onBindViewHolder(@NonNull TodoAdapterViewHolder todoAdapterViewHolder, int i) {
             String taskName = taskModelArrayList.get(i).getTask();
+            boolean isCompleted = taskModelArrayList.get(i).isCompelted();
 
             todoAdapterViewHolder.txtTaskName.setText(taskName);
+            if (isCompleted){
+                todoAdapterViewHolder.chkTask.setChecked(true);
+            }else {
+                todoAdapterViewHolder.chkTask.setChecked(false);
+            }
         }
 
         @Override
@@ -126,17 +145,20 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    private class TodoAdapterViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
+    private class TodoAdapterViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener, CompoundButton.OnCheckedChangeListener {
         private final TextView txtTaskName;
         private final ImageButton btnRemind;
         private final ImageButton btnComment;
+        private final CheckBox chkTask;
         public TodoAdapterViewHolder(@NonNull View itemView) {
             super(itemView);
             txtTaskName = itemView.findViewById(R.id.txtTaskName);
             btnRemind = itemView.findViewById(R.id.btnRemind);
             btnComment = itemView.findViewById(R.id.btnComment);
+            chkTask = itemView.findViewById(R.id.chkTask);
             btnRemind.setOnClickListener(this);
             btnComment.setOnClickListener(this);
+            chkTask.setOnCheckedChangeListener(this);
         }
 
         @Override
@@ -164,6 +186,19 @@ public class MainActivity extends AppCompatActivity {
                 startActivity(new Intent(MainActivity.this,Comments.class).putExtra("key",taskModelArrayList.get(position).getKey()));
             }
         }
+
+        @Override
+        public void onCheckedChanged(CompoundButton compoundButton, boolean isChecked) {
+            int position = getAdapterPosition();
+            String key = taskModelArrayList.get(position).getKey();
+            if (isChecked){
+                myRef.child(key).child("isCompleted").setValue(true);
+                chkTask.setText("Completed");
+            }else {
+                myRef.child(key).child("isCompleted").setValue(false);
+                chkTask.setText("Not Completed");
+            }
+        }
     }
 
 
@@ -181,10 +216,12 @@ public class MainActivity extends AppCompatActivity {
     private class TodoModel{
         String key;
         String task;
+        boolean isCompelted;
 
-        public TodoModel(String key, String task) {
+        public TodoModel(String key, String task, boolean isCompelted) {
             this.key = key;
             this.task = task;
+            this.isCompelted = isCompelted;
         }
 
         public String getKey() {
@@ -193,6 +230,14 @@ public class MainActivity extends AppCompatActivity {
 
         public String getTask() {
             return task;
+        }
+
+        public boolean isCompelted() {
+            return isCompelted;
+        }
+
+        public void setCompelted(boolean compelted) {
+            isCompelted = compelted;
         }
     }
 }
