@@ -42,7 +42,7 @@ public class NotificationHelper {
 
         }
         @SuppressLint("WrongConstant") NotificationCompat.Builder notification = new NotificationCompat.Builder(mContext.getApplicationContext(),channelId)
-                .setSmallIcon(R.mipmap.ic_launcher)
+                .setSmallIcon(R.drawable.logo_notification)
                 .setContentTitle(title)
                 .setContentText(message)
                 .setAutoCancel(true)
