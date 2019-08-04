@@ -168,8 +168,8 @@ public class MainActivity extends AppCompatActivity {
             if (view.getId()==R.id.btnRemind){
 
                 Calendar calendar = Calendar.getInstance();
-                calendar.set(Calendar.HOUR_OF_DAY, 10);
-                calendar.set(Calendar.MINUTE, 45);
+                calendar.set(Calendar.HOUR_OF_DAY, 15);
+                calendar.set(Calendar.MINUTE, 0);
 
                 Intent intent = new Intent(getApplicationContext(), Notify.class);
                 intent.putExtra("title","Daily Reminder");

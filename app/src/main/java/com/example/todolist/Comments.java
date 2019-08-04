@@ -89,6 +89,7 @@ public class Comments extends AppCompatActivity {
                 String comment = txtComment.getText().toString();
                 String commentKey = myRef.push().getKey();
                 myRef.child(commentKey).setValue(comment);
+                txtComment.setText("");
             }
         });
 
